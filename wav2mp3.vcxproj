@@ -142,7 +142,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\encoder.cpp" />
+    <ClCompile Include="src\encoding_item.cpp" />
+    <ClCompile Include="src\encoding_queue.cpp" />
+    <ClCompile Include="src\encoding_thread.cpp" />
+    <ClCompile Include="src\encoding_threads_pool.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClInclude Include="src\encoder.h" />
+    <ClInclude Include="src\encoding_item.h" />
+    <ClInclude Include="src\encoding_queue.h" />
+    <ClInclude Include="src\encoding_thread.h" />
+    <ClInclude Include="src\encoding_threads_pool.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
