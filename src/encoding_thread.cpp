@@ -20,7 +20,8 @@ EncodingThread::~EncodingThread() {
 
 void EncodingThread::Stop() {
   enforce_stop_ = true;
-  thread_.join();
+  if (thread_.joinable())
+    thread_.join();
 }
 
 void EncodingThread::MainLoop() {
