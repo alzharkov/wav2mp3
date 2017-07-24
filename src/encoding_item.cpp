@@ -2,7 +2,7 @@
 
 namespace wav2mp3 {
 
-EncodingItem::EncodingItem(std::string file_name)
+EncodingItem::EncodingItem(const FilePath& file_name)
   :is_encoded_(false),
   file_name_(file_name){
 }

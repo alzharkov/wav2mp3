@@ -74,21 +74,29 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)out\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)out\$(Configuration)\</IntDir>
+    <IncludePath>$(SolutionDir)..\lame-3.99.5\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)..\lame-3.99.5\output\Debug\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)out\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)out\$(Platform)\$(Configuration)\</IntDir>
+    <LibraryPath>$(SolutionDir)..\lame-3.99.5\output\Debug\;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)..\lame-3.99.5\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)out\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)out\$(Configuration)\</IntDir>
+    <LibraryPath>$(SolutionDir)..\lame-3.99.5\output\Release\;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)..\lame-3.99.5\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)out\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)out\$(Platform)\$(Configuration)\</IntDir>
+    <LibraryPath>$(SolutionDir)..\lame-3.99.5\output\Release\;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)..\lame-3.99.5\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -100,6 +108,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>libmp3lame-static.lib;libmpghip-static.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -112,6 +121,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>libmp3lame-static.lib;libmpghip-static.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -128,6 +138,7 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>libmp3lame-static.lib;libmpghip-static.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -144,6 +155,7 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>libmp3lame-static.lib;libmpghip-static.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -152,12 +164,15 @@
     <ClCompile Include="src\encoding_queue.cpp" />
     <ClCompile Include="src\encoding_thread.cpp" />
     <ClCompile Include="src\encoding_threads_pool.cpp" />
+    <ClCompile Include="src\file_helper_win.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClInclude Include="src\encoder.h" />
     <ClInclude Include="src\encoding_item.h" />
     <ClInclude Include="src\encoding_queue.h" />
     <ClInclude Include="src\encoding_thread.h" />
     <ClInclude Include="src\encoding_threads_pool.h" />
+    <ClInclude Include="src\file_helper.h" />
+    <ClInclude Include="src\string_type.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -18,7 +18,7 @@ class EncodingQueue {
   virtual ~EncodingQueue() {}
   
   // Thread-safe adding.
-  virtual void Add(std::string file_name);
+  virtual void Add(const FilePath& file_name);
 
   // Retrives next unhadled item. Thread-safe.
   virtual std::shared_ptr<EncodingItem> GetNextItem();

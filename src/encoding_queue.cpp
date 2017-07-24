@@ -6,7 +6,7 @@ EncodingQueue::EncodingQueue()
   :last_retrieved_item_(-1) {
 }
 
-void EncodingQueue::Add(std::string file_name) {
+void EncodingQueue::Add(const FilePath& file_name) {
   items_.push_back(std::make_shared<EncodingItem>(file_name));
 }
 

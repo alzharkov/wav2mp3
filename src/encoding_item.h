@@ -4,12 +4,15 @@
 #include <atomic>
 #include <string>
 
+#include "string_type.h"
+#include "file_helper.h"
+
 namespace wav2mp3 {
 
 // Stores information about file to be encoded.
 class EncodingItem {
  public:
-  EncodingItem(std::string file_name);
+  EncodingItem(const FilePath& file_name);
   virtual ~EncodingItem() {}
   // Marks item as encoded.
   void EncodingCompleted();
@@ -17,7 +20,7 @@ class EncodingItem {
   EncodingItem(const EncodingItem&) = delete;
   EncodingItem& operator=(const EncodingItem&) = delete;
  private:
-  std::string file_name_;
+  FilePath file_name_;
   std::atomic<bool> is_encoded_;
 };
 
