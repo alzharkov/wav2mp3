@@ -173,6 +173,7 @@
     <ClInclude Include="src\encoding_threads_pool.h" />
     <ClInclude Include="src\file_helper.h" />
     <ClInclude Include="src\string_type.h" />
+    <ClInclude Include="src\wav_headers.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
