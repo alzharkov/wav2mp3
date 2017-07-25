@@ -4,6 +4,7 @@
 #include <atomic>
 #include <string>
 
+#include "encoder.h"
 #include "string_type.h"
 #include "file_helper.h"
 
@@ -15,13 +16,18 @@ class EncodingItem {
   EncodingItem(const FilePath& file_name);
   virtual ~EncodingItem() {}
   // Marks item as encoded.
-  void EncodingCompleted();
+  EncodingErrors EncodingCompleted(const EncodingErrors error_code);
+  const FilePath& FileName() const;
+  bool IsEncoded() const;
+  bool HasErrors() const;
+  EncodingErrors GetErrorCode() const;
 
   EncodingItem(const EncodingItem&) = delete;
   EncodingItem& operator=(const EncodingItem&) = delete;
  private:
   FilePath file_name_;
   std::atomic<bool> is_encoded_;
+  std::atomic<EncodingErrors> encoding_error_code_;
 };
 
 }

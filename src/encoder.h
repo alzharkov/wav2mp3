@@ -2,7 +2,6 @@
 #define ENCODER_H
 
 #include <memory>
-#include "encoding_item.h"
 
 namespace wav2mp3 {
 
@@ -18,8 +17,12 @@ enum EncodingErrors {
   kFmtWrongBlockAlign,
   kDataHeaderNorFound,
   kFileReadError,
+  kInvalidParameters,
+  kOutputFileOpenError,
   kUnknownError = 9999
 };
+
+class EncodingItem;
 
 namespace encoder {
 

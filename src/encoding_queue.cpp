@@ -3,7 +3,7 @@
 namespace wav2mp3 {
 
 EncodingQueue::EncodingQueue()
-  :last_retrieved_item_(-1) {
+  :next_retrieved_item_(0) {
 }
 
 void EncodingQueue::Add(const FilePath& file_name) {
@@ -11,11 +11,11 @@ void EncodingQueue::Add(const FilePath& file_name) {
 }
 
 std::shared_ptr<EncodingItem> EncodingQueue::GetNextItem() {
-  if (last_retrieved_item_ >= items_.size())
+  if (next_retrieved_item_ >= items_.size())
     return nullptr;
-
-  last_retrieved_item_++;
-  return items_[last_retrieved_item_];
+  auto item = items_[next_retrieved_item_];
+  ++next_retrieved_item_;
+  return item;
 }
 
 }  // namespace wav2mp3

@@ -28,7 +28,7 @@ class EncodingQueue {
 
  private:
   std::vector<std::shared_ptr<EncodingItem>> items_;
-  std::atomic<int> last_retrieved_item_;
+  std::atomic<std::size_t> next_retrieved_item_;
 };
 
 }  // namespace wav2mp3

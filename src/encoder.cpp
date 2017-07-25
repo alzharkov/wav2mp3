@@ -3,12 +3,18 @@
 #include <fstream>
 
 #include "lame.h"
+
+#include "encoding_item.h"
 #include "wav_headers.h"
 
 #if !defined(_UNICODE)  // not _UNICODE
 #define EXT_MP3 "mp3"
+#define MP3_FILE_MODE "wb+"
+#define FOPEN fopen_s
 #else  // _UNICODE
 #define EXT_MP3 L"mp3"
+#define MP3_FILE_MODE L"wb+"
+#define FOPEN _wfopen_s
 #endif  // _UNICODE
 
 namespace {
@@ -23,20 +29,20 @@ typedef std::ifstream InputFileStream;
 class Mp3Encoder {
  public:
   Mp3Encoder(const wav2mp3::FilePath& file_path);
-  ~Mp3Encoder() {
-    if (global_flags_)
-      delete global_flags_;
-  }
+  ~Mp3Encoder() {}
+
   EncodingErrors operator()();
+
+  Mp3Encoder(const Mp3Encoder&) = delete;
+  Mp3Encoder& operator=(const Mp3Encoder&) = delete;
  protected:
   EncodingErrors CheckFormat();
   EncodingErrors ReadHeaders(int &data_size, int &data_offset);
   EncodingErrors ReadPcm(const int data_size, const int data_offset);
   EncodingErrors ReadWaveFile(int &data_size);
-  EncodingErrors EncodeToMp3(const int data_size);
+  EncodingErrors EncodeToMp3(lame_global_flags* global_flags, const int data_size);
 
  private:
-  lame_global_flags* global_flags_;
   FmtHeader fmt_header_;
   uint16_t* left_pcm_;
   uint16_t* right_pcm_;
@@ -52,39 +58,38 @@ Mp3Encoder::Mp3Encoder(const wav2mp3::FilePath& file_path)
   : file_path_(file_path),
   fmt_header_({ 0 }),
   left_pcm_(nullptr),
-  right_pcm_(nullptr),
-  global_flags_(nullptr) {
+  right_pcm_(nullptr) {
   output_file_ = file_path.substr(0, file_path.size() - 3) + EXT_MP3;
   
 }
 
 EncodingErrors Mp3Encoder::operator()() {
-  global_flags_ = lame_init();
-  lame_set_brate(global_flags_, 192); // increase bitrate
-  lame_set_quality(global_flags_, 3); // increase quality level
-  lame_set_bWriteVbrTag(global_flags_, 0);
+  lame_global_flags* global_flags = lame_init();
+  lame_set_brate(global_flags, 192); // increase bitrate
+  lame_set_quality(global_flags, 3); // increase quality level
+  lame_set_bWriteVbrTag(global_flags, 0);
 
   int data_size = -1;
   auto result = ReadWaveFile(data_size);
 
   if (result != EncodingErrors::kOk) {
-    lame_close(global_flags_);
+    lame_close(global_flags);
     return result;
   }
 
-  lame_set_num_channels(global_flags_, fmt_header_.num_channels);
-  lame_set_num_samples(global_flags_, data_size / fmt_header_.block_align);
+  lame_set_num_channels(global_flags, fmt_header_.num_channels);
+  lame_set_num_samples(global_flags, data_size / fmt_header_.block_align);
   // check params
-  auto lame_result = lame_init_params(global_flags_);
+  auto lame_result = lame_init_params(global_flags);
   if (lame_result != 0) {
-    lame_close(global_flags_);
+    lame_close(global_flags);
     return result;
   }
 
   // encode to mp3
-  result = EncodeToMp3(data_size);
+  result = EncodeToMp3(global_flags, data_size);
   
-  lame_close(global_flags_);
+  lame_close(global_flags);
   if (left_pcm_ != NULL) delete[] left_pcm_;
   if (right_pcm_ != NULL) delete[] right_pcm_;
 
@@ -92,49 +97,48 @@ EncodingErrors Mp3Encoder::operator()() {
 }
 
 
-EncodingErrors Mp3Encoder::EncodeToMp3(const int data_size) {
-  int numSamples = data_size / fmt_header_.block_align;
+EncodingErrors Mp3Encoder::EncodeToMp3(lame_global_flags* global_flags, int data_size) {
+  int num_samples = data_size / fmt_header_.block_align;
 
-  int mp3BufferSize = numSamples * 5 / 4 + 7200; // worst case estimate
-  unsigned char *mp3Buffer = new unsigned char[mp3BufferSize];
+  int mp3_buffer_size = num_samples * 5 / 4 + 7200;
+  std::unique_ptr<uint8_t[]> mp3_buffer(new uint8_t[mp3_buffer_size]);
 
-  // call to lame_encode_buffer
-  int mp3size = lame_encode_buffer(
-      global_flags_, 
+  int mp3_size = lame_encode_buffer(
+      global_flags, 
       reinterpret_cast<int16_t*>(left_pcm_),
       reinterpret_cast<int16_t*>(right_pcm_),
-      numSamples,
-      mp3Buffer,
-      mp3BufferSize);
+      num_samples,
+      mp3_buffer.get(),
+      mp3_buffer_size);
 
-  if (!(mp3size > 0)) {
-    delete[] mp3Buffer;
+  if (mp3_size <= 0)
     return EncodingErrors::kLameEncodingError;
-  }
-  /*
-  // write to file
-  std::ofstream mp3_file(output_file_, std::ios::out | std::ios::binary);
-  mp3_file.write(mp3Buffer, mp3size);
-  int flushSize = lame_encode_flush(global_flags_, mp3Buffer, mp3BufferSize);
+  
+  FILE *mp3_file_handler;
+  auto error_code = FOPEN(&mp3_file_handler, output_file_.c_str(), MP3_FILE_MODE);
+  if (error_code != 0)
+    return EncodingErrors::kOutputFileOpenError;
 
-  mp3_file.write(mp3Buffer, mp3size);
+  fwrite(reinterpret_cast<void*>(mp3_buffer.get()),
+         sizeof(uint8_t),
+         mp3_size,
+         mp3_file_handler);
+  fflush(mp3_file_handler);
+  int flushSize = lame_encode_flush(global_flags,
+                                    mp3_buffer.get(),
+                                    mp3_buffer_size);
 
-  FILE *out = fopen(output_file_, "wb+");
-  fwrite((void*)mp3Buffer, sizeof(unsigned char), mp3size, out);
+  fwrite(reinterpret_cast<void*>(mp3_buffer.get()),
+         sizeof(uint8_t),
+         flushSize,
+         mp3_file_handler);
 
-  // call to lame_encode_flush
-  int flushSize = lame_encode_flush(global_flags_, mp3Buffer, mp3BufferSize);
+  fflush(mp3_file_handler);
+  lame_mp3_tags_fid(global_flags, mp3_file_handler);
 
-  // write flushed buffers to file
-  fwrite((void*)mp3Buffer, sizeof(unsigned char), flushSize, out);
-
-  mp3_file.
-  // call to lame_mp3_tags_fid (might be omitted)
-  lame_mp3_tags_fid(global_flags_, out);
-
-  fclose(out);
-  */
-  delete[] mp3Buffer;
+  fflush(mp3_file_handler);
+  fclose(mp3_file_handler);
+  return EncodingErrors::kOk;
 }
 
 EncodingErrors Mp3Encoder::CheckFormat() {
@@ -202,7 +206,7 @@ EncodingErrors Mp3Encoder::ReadHeaders(int &data_size, int &data_offset) {
     if (strncmp(chunk_header.sub_chunk2_id, "data", 4) == 0) {
       found_data_header = true;
       data_size = chunk_header.sub_chunk2_size;
-      data_offset = file_.tellg();
+      data_offset = static_cast<int>(file_.tellg());
       break;
     }
     else {
@@ -246,6 +250,7 @@ EncodingErrors Mp3Encoder::ReadPcm(const int data_size, const int data_offset) {
                    fmt_header_.block_align / fmt_header_.num_channels);
     }
   }
+  return EncodingErrors::kOk;
 }
 
 EncodingErrors Mp3Encoder::ReadWaveFile(int &data_size) {
@@ -271,7 +276,11 @@ namespace wav2mp3 {
 namespace encoder {
 
 EncodingErrors Encode(std::shared_ptr<EncodingItem> encoding_item) {
-  return EncodingErrors::kOk;
+  if (encoding_item == nullptr)
+    return EncodingErrors::kInvalidParameters;
+
+  return encoding_item->EncodingCompleted(
+      Mp3Encoder(encoding_item->FileName())());
 }
 
 }  // namespace encoder

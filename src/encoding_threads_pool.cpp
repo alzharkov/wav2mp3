@@ -9,8 +9,9 @@ static const uint32_t MAX_THREADS_COUNT = 256;
 namespace wav2mp3 {
 
 EncodingThreadsPool::EncodingThreadsPool(
-  std::shared_ptr<EncodingQueue> encoding_queue,
-  uint32_t threads_count) {
+    std::shared_ptr<EncodingQueue> encoding_queue,
+    uint32_t threads_count)
+  :threads_completed_(0) {
   uint32_t threads_to_create = threads_count > 0
     ? threads_count < MAX_THREADS_COUNT ? threads_count : MAX_THREADS_COUNT
     : std::thread::hardware_concurrency();
