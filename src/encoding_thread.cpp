@@ -5,19 +5,29 @@
 
 namespace wav2mp3 {
 
-EncodingThread::
-EncodingThread(std::shared_ptr<EncodingQueue> encoding_queue,
-               std::function<void(void)> on_stopped)
+
+EncodingThread::EncodingThread(const EncodingThread& source)
+    : encoding_queue_(source.encoding_queue_),
+    enforce_stop_(static_cast<bool>(source.enforce_stop_)),
+    on_stopped_(source.on_stopped_) {
+}
+
+EncodingThread::EncodingThread(std::shared_ptr<EncodingQueue> encoding_queue,
+                               std::function<void(void)> on_stopped)
   : encoding_queue_(encoding_queue),
   enforce_stop_(false),
-  on_stopped_(on_stopped) {
-  thread_ = std::thread(std::bind(&EncodingThread::MainLoop, this));
+  on_stopped_(on_stopped) {  
 }
 
 EncodingThread::~EncodingThread() {
   Stop();
 }
 
+void EncodingThread::Start() {
+  Stop();
+  enforce_stop_ = false;
+  thread_ = std::thread(std::bind(&EncodingThread::MainLoop, this));
+}
 void EncodingThread::Stop() {
   enforce_stop_ = true;
   if (thread_.joinable())

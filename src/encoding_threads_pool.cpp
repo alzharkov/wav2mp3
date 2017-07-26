@@ -12,26 +12,43 @@ EncodingThreadsPool::EncodingThreadsPool(
     std::shared_ptr<EncodingQueue> encoding_queue,
     uint32_t threads_count)
   :threads_completed_(0) {
-  uint32_t threads_to_create = threads_count > 0
-    ? threads_count < MAX_THREADS_COUNT ? threads_count : MAX_THREADS_COUNT
-    : std::thread::hardware_concurrency();
+  
+  uint32_t threads_to_create = 0;
+  if (threads_count <= 0)
+    threads_to_create = std::thread::hardware_concurrency();
+  else if (threads_count < MAX_THREADS_COUNT)
+    threads_to_create = threads_count;
+  else
+    threads_to_create = MAX_THREADS_COUNT;
+
   auto on_stopped_callback = [this]() {
     this->threads_completed_++;
   };
-  threads_.resize(threads_to_create);
   for (uint32_t i = 0; i < threads_to_create; i++) {
-    auto thread = std::unique_ptr<EncodingThread>(
-        new EncodingThread(encoding_queue, on_stopped_callback));
-    threads_[i] = std::move(thread);
+    threads_.push_back(EncodingThread(encoding_queue, on_stopped_callback));
   }
+
+  Start();
 }
 
 EncodingThreadsPool::~EncodingThreadsPool() {
-  for (uint32_t i = 0; i < threads_.size(); i++) {
-    threads_[i]->Stop();
-  }
+  Stop();
+
   Wait(); 
 }
+
+void EncodingThreadsPool::Start() {
+  for (EncodingThread& thread : threads_) {
+    thread.Start();
+  }
+}
+
+void EncodingThreadsPool::Stop() {
+  for (EncodingThread& thread : threads_) {
+    thread.Stop();
+  }
+}
+
 void EncodingThreadsPool::Wait() {
   while (threads_.size() > threads_completed_);
 }

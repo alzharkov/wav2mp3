@@ -1,6 +1,7 @@
 #include "encoder.h"
 
 #include <fstream>
+#include <vector>
 
 #include "lame.h"
 
@@ -8,12 +9,8 @@
 #include "wav_headers.h"
 
 #if !defined(_UNICODE)  // not _UNICODE
-#define EXT_MP3 "mp3"
-#define MP3_FILE_MODE "wb+"
 #define FOPEN fopen_s
 #else  // _UNICODE
-#define EXT_MP3 L"mp3"
-#define MP3_FILE_MODE L"wb+"
 #define FOPEN _wfopen_s
 #endif  // _UNICODE
 
@@ -44,8 +41,8 @@ class Mp3Encoder {
 
  private:
   FmtHeader fmt_header_;
-  uint16_t* left_pcm_;
-  uint16_t* right_pcm_;
+  std::vector<uint16_t> left_pcm_;
+  std::vector<uint16_t> right_pcm_;
 
   FilePath file_path_;
   FilePath output_file_;
@@ -56,11 +53,8 @@ class Mp3Encoder {
 
 Mp3Encoder::Mp3Encoder(const wav2mp3::FilePath& file_path)
   : file_path_(file_path),
-  fmt_header_({ 0 }),
-  left_pcm_(nullptr),
-  right_pcm_(nullptr) {
-  output_file_ = file_path.substr(0, file_path.size() - 3) + EXT_MP3;
-  
+  fmt_header_({ 0 }) {
+  output_file_ = file_path.substr(0, file_path.size() - 3) + _T("mp3");  
 }
 
 EncodingErrors Mp3Encoder::operator()() {
@@ -81,7 +75,7 @@ EncodingErrors Mp3Encoder::operator()() {
   lame_set_num_samples(global_flags, data_size / fmt_header_.block_align);
   // check params
   auto lame_result = lame_init_params(global_flags);
-  if (lame_result != 0) {
+  if (lame_result) {
     lame_close(global_flags);
     return result;
   }
@@ -90,8 +84,6 @@ EncodingErrors Mp3Encoder::operator()() {
   result = EncodeToMp3(global_flags, data_size);
   
   lame_close(global_flags);
-  if (left_pcm_ != NULL) delete[] left_pcm_;
-  if (right_pcm_ != NULL) delete[] right_pcm_;
 
   return result;
 }
@@ -101,34 +93,40 @@ EncodingErrors Mp3Encoder::EncodeToMp3(lame_global_flags* global_flags, int data
   int num_samples = data_size / fmt_header_.block_align;
 
   int mp3_buffer_size = num_samples * 5 / 4 + 7200;
-  std::unique_ptr<uint8_t[]> mp3_buffer(new uint8_t[mp3_buffer_size]);
+  std::vector<uint8_t> mp3_buffer;
+  mp3_buffer.resize(mp3_buffer_size);
+
+  int16_t* left_pcm = left_pcm_.size() 
+      ? reinterpret_cast<int16_t*>(left_pcm_.data()) : nullptr;
+  int16_t* right_pcm = right_pcm_.size()
+      ? reinterpret_cast<int16_t*>(right_pcm_.data()) : nullptr;
 
   int mp3_size = lame_encode_buffer(
       global_flags, 
-      reinterpret_cast<int16_t*>(left_pcm_),
-      reinterpret_cast<int16_t*>(right_pcm_),
+      left_pcm,
+      right_pcm,
       num_samples,
-      mp3_buffer.get(),
+      mp3_buffer.data(),
       mp3_buffer_size);
 
   if (mp3_size <= 0)
     return EncodingErrors::kLameEncodingError;
   
   FILE *mp3_file_handler;
-  auto error_code = FOPEN(&mp3_file_handler, output_file_.c_str(), MP3_FILE_MODE);
-  if (error_code != 0)
+  auto error_code = FOPEN(&mp3_file_handler, output_file_.c_str(), _T("wb+"));
+  if (error_code)
     return EncodingErrors::kOutputFileOpenError;
 
-  fwrite(reinterpret_cast<void*>(mp3_buffer.get()),
+  fwrite(reinterpret_cast<void*>(mp3_buffer.data()),
          sizeof(uint8_t),
          mp3_size,
          mp3_file_handler);
   fflush(mp3_file_handler);
   int flushSize = lame_encode_flush(global_flags,
-                                    mp3_buffer.get(),
+                                    mp3_buffer.data(),
                                     mp3_buffer_size);
 
-  fwrite(reinterpret_cast<void*>(mp3_buffer.get()),
+  fwrite(reinterpret_cast<void*>(mp3_buffer.data()),
          sizeof(uint8_t),
          flushSize,
          mp3_file_handler);
@@ -151,6 +149,9 @@ EncodingErrors Mp3Encoder::CheckFormat() {
   if (fmt_header_.sub_chunk1_size != 16)
     return EncodingErrors::kFmtWrongChunkSize;
 
+  if (fmt_header_.block_align == 0)
+    return EncodingErrors::kFmtWrongBlockAlign;
+
   if (fmt_header_.block_align !=
     fmt_header_.bits_per_sample * fmt_header_.num_channels / 8)
     return EncodingErrors::kFmtWrongBlockAlign;
@@ -161,7 +162,11 @@ EncodingErrors Mp3Encoder::CheckFormat() {
 EncodingErrors Mp3Encoder::ReadHeaders(int &data_size, int &data_offset) {
   if (!file_.is_open())
     return EncodingErrors::kFileReadError;
-  
+  file_.seekg(0, std::ios::end);
+  auto file_size = static_cast<int>(file_.tellg());
+  if (file_size < sizeof(RiffHeader) + sizeof(FmtHeader))
+    return EncodingErrors::kWrongRiffHeader;
+
   file_.seekg(0, std::ios::beg);
   
   // Read RIFF header.
@@ -171,9 +176,9 @@ EncodingErrors Mp3Encoder::ReadHeaders(int &data_size, int &data_offset) {
   // Validate RIFF header.
   if (!(strncmp(riff_header.chunck_id, "RIFF", 4) == 0
       && strncmp(riff_header.format, "WAVE", 4) == 0
-      && riff_header.chunck_sie > 0))
+      && riff_header.chunck_sie + 8 == file_size))
     return EncodingErrors::kWrongRiffHeader;
-
+  
   DataHeader chunk_header;
   // Find chunck with type 'fmt '.
   bool found_format_header = false;
@@ -184,6 +189,12 @@ EncodingErrors Mp3Encoder::ReadHeaders(int &data_size, int &data_offset) {
       file_.seekg((int)file_.tellg() - sizeof(DataHeader));
 
       file_.read(reinterpret_cast<char*>(&fmt_header_), sizeof(FmtHeader));
+
+      // Check fmt header.
+      auto result = CheckFormat();
+      if (result != EncodingErrors::kOk)
+        return result;
+
       found_format_header = true;
       break;
     }
@@ -194,11 +205,6 @@ EncodingErrors Mp3Encoder::ReadHeaders(int &data_size, int &data_offset) {
   if (!found_format_header)
     return EncodingErrors::KFmtHeaderNotFound;
   
-  // Check fmt header.
-  auto result = CheckFormat();
-  if (result != EncodingErrors::kOk)
-    return result;
-  
   bool found_data_header = false;
   while (!found_data_header && !file_.eof()) {    
     file_.read(reinterpret_cast<char*>(&chunk_header), sizeof(DataHeader));
@@ -206,6 +212,8 @@ EncodingErrors Mp3Encoder::ReadHeaders(int &data_size, int &data_offset) {
     if (strncmp(chunk_header.sub_chunk2_id, "data", 4) == 0) {
       found_data_header = true;
       data_size = chunk_header.sub_chunk2_size;
+      if (data_size > file_size)
+        return EncodingErrors::kWrongDataSize;
       data_offset = static_cast<int>(file_.tellg());
       break;
     }
@@ -224,20 +232,20 @@ EncodingErrors Mp3Encoder::ReadPcm(const int data_size, const int data_offset) {
   int idx;
   int numSamples = data_size / fmt_header_.block_align;
 
-  left_pcm_ = nullptr;
-  right_pcm_ = nullptr;
+  left_pcm_.resize(0);
+  right_pcm_.resize(0);
 
   // allocate PCM arrays
   int chunks_count = data_size / fmt_header_.num_channels / sizeof(uint16_t);
-  left_pcm_ = new uint16_t[chunks_count];
+  left_pcm_.resize(chunks_count);
   if (fmt_header_.num_channels > 1)
-    right_pcm_ = new uint16_t[chunks_count];
+    right_pcm_.resize(chunks_count);
 
   // capture each sample
   file_.seekg(data_offset);// set file pointer to beginning of data array
 
   if (fmt_header_.num_channels == 1) {
-    file_.read(reinterpret_cast<char*>(left_pcm_),
+    file_.read(reinterpret_cast<char*>(left_pcm_.data()),
                fmt_header_.block_align * numSamples);
   }
   else {

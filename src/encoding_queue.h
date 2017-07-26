@@ -3,6 +3,7 @@
 
 #include <atomic>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -28,6 +29,7 @@ class EncodingQueue {
 
  private:
   std::vector<std::shared_ptr<EncodingItem>> items_;
+  std::mutex mutex_;
   std::atomic<std::size_t> next_retrieved_item_;
 };
 

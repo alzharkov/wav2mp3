@@ -5,23 +5,19 @@
 #include "encoding_threads_pool.h"
 
 #if !defined(_UNICODE)  // not _UNICODE
+
 #define _tmain main
 
-#define WAV_EXT_W 'w'
-#define WAV_EXT_A 'a'
-#define WAV_EXT_V 'v'
 #else  // _UNICODE
+
 #define _tmain wmain
 
-#define WAV_EXT_W L'w'
-#define WAV_EXT_A L'a'
-#define WAV_EXT_V L'v'
 #endif  // _UNICODE
 
 namespace {
 bool is_wav_file(const wav2mp3::FilePath& file_path) {
   auto ext = file_path.substr(file_path.size() - 3, 3);
-  return ext[0] == WAV_EXT_W && ext[1] == WAV_EXT_A && ext[2] == WAV_EXT_V;
+  return ext[0] == _T('w') && ext[1] == _T('a') && ext[2] == _T('v');
 }
 
 std::shared_ptr<wav2mp3::EncodingQueue> GetEncodingQueue(

@@ -18,8 +18,11 @@ class EncodingThreadsPool {
 
    // Use this method to wait until processing will be finished.
    void Wait();
+ protected:
+   void Start();
+   void Stop();
  private:
-   std::vector<std::unique_ptr<EncodingThread>> threads_;
+   std::vector<EncodingThread> threads_;
    uint32_t threads_completed_; 
 };
 

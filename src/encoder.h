@@ -16,6 +16,7 @@ enum EncodingErrors {
   kFmtWrongChunkSize,
   kFmtWrongBlockAlign,
   kDataHeaderNorFound,
+  kWrongDataSize,
   kFileReadError,
   kInvalidParameters,
   kOutputFileOpenError,

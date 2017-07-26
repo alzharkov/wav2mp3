@@ -35,7 +35,7 @@ std::list<FilePath> GetFilesList(
     FilePath file_name(ffd.cFileName);
     if (is_appropriate_file_name(file_name))
       files_list.push_back(base_path + file_name);
-  } while (FindNextFile(hFind, &ffd) != 0);
+  } while (FindNextFile(hFind, &ffd));
   
   FindClose(hFind);
   return files_list;

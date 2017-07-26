@@ -17,14 +17,15 @@ class EncodingThread {
   EncodingThread(std::shared_ptr<EncodingQueue> encoding_queue,
                   std::function<void(void)> on_stopped);
 
+  // Starts thread execution.
+  virtual void Start();
   // Sends stop signal to the main loop. Waits until thread is stopped.
   virtual void Stop();
 
   // Sends stop signal.
   virtual ~EncodingThread();
 
-  EncodingThread(const EncodingThread&) = delete;
-  EncodingThread& operator=(const EncodingThread&) = delete;
+  EncodingThread(const EncodingThread&);
 
  protected:
   // Implements main thread loop: gets item from queue and encodes it.
