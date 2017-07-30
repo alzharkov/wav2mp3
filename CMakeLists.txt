@@ -27,3 +27,5 @@ set(SOURCE_FILES
         Makefile)
 
 add_executable(wav2mp3 ${SOURCE_FILES})
+
+target_link_libraries(wav2mp3 pthread mp3lame.a)

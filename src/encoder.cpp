@@ -57,8 +57,6 @@ class Mp3Encoder {
   FilePath file_path_;
   FilePath output_file_;
   InputFileStream file_;
-
-  int encoding_status_;
 };
 
 Mp3Encoder::Mp3Encoder(const wav2mp3::FilePath& file_path)
@@ -69,8 +67,8 @@ Mp3Encoder::Mp3Encoder(const wav2mp3::FilePath& file_path)
 
 EncodingErrors Mp3Encoder::operator()() {
   lame_global_flags* global_flags = lame_init();
-  lame_set_brate(global_flags, 192); // increase bitrate
-  lame_set_quality(global_flags, 3); // increase quality level
+  lame_set_brate(global_flags, 128);  // Set bit rate.
+  lame_set_quality(global_flags, 5);  // Set 'good' quality.
   lame_set_bWriteVbrTag(global_flags, 0);
 
   int data_size = -1;
@@ -83,14 +81,14 @@ EncodingErrors Mp3Encoder::operator()() {
 
   lame_set_num_channels(global_flags, fmt_header_.num_channels);
   lame_set_num_samples(global_flags, data_size / fmt_header_.block_align);
-  // check params
+  // Check params by lame.
   auto lame_result = lame_init_params(global_flags);
   if (lame_result) {
     lame_close(global_flags);
     return result;
   }
 
-  // encode to mp3
+  // Encode to mp3.
   result = EncodeToMp3(global_flags, data_size);
   
   lame_close(global_flags);

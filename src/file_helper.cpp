@@ -18,7 +18,10 @@ std::list<FilePath> GetFilesList(
   std::list<FilePath> files_list;
 
   while ((entry = readdir(directory)) != nullptr) {
-    FilePath file_path(entry->d_name);
+    FilePath file_path(path);
+    if (file_path[file_path.size()-1] != _T('/'))
+      file_path += _T("/");
+    file_path += entry->d_name;
     if (is_appropriate_file_name(file_path))
       files_list.push_back(file_path);
   }

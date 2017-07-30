@@ -16,6 +16,8 @@
 
 namespace {
 bool is_wav_file(const wav2mp3::FilePath& file_path) {
+  if (file_path.size() < 5)
+    return false;
   auto ext = file_path.substr(file_path.size() - 3, 3);
   return ext[0] == _T('w') && ext[1] == _T('a') && ext[2] == _T('v');
 }

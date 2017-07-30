@@ -10,10 +10,10 @@
 namespace wav2mp3 {
 
 // Implements encoding thread. Receives queue of items to be encoded.
-// Starts execution immideatedly after creation.
+// Starts execution immediately after creation.
 class EncodingThread {
  public:
-  // Creates new thread, processing starts immideatly.
+  // Creates new thread, processing starts immediately.
   EncodingThread(std::shared_ptr<EncodingQueue> encoding_queue,
                   std::function<void(void)> on_stopped);
 
