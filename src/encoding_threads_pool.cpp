@@ -1,8 +1,31 @@
 #include "encoding_threads_pool.h"
 
+#ifdef USE_POSIX_THREADS
+#ifdef __unix
+#include <zconf.h>
+#else
+#include "windows.h"
+#endif
+#else
+#include <thread>
+#endif
+
 namespace {
 
 static const uint32_t MAX_THREADS_COUNT = 256;
+uint32_t GetProcessorsCount() {
+#ifdef USE_POSIX_THREADS
+#ifndef __unix
+  SYSTEM_INFO sysinfo;
+  GetSystemInfo(&sysinfo);
+  return sysinfo.dwNumberOfProcessors;
+#else
+  return sysconf(_SC_NPROCESSORS_ONLN);
+#endif
+#else
+  return std::thread::hardware_concurrency();
+#endif
+}
 
 }
 
@@ -15,7 +38,7 @@ EncodingThreadsPool::EncodingThreadsPool(
   
   uint32_t threads_to_create = 0;
   if (threads_count <= 0)
-    threads_to_create = std::thread::hardware_concurrency();
+    threads_to_create = GetProcessorsCount();
   else if (threads_count < MAX_THREADS_COUNT)
     threads_to_create = threads_count;
   else
@@ -25,7 +48,7 @@ EncodingThreadsPool::EncodingThreadsPool(
     this->threads_completed_++;
   };
   for (uint32_t i = 0; i < threads_to_create; i++) {
-    threads_.push_back(EncodingThread(encoding_queue, on_stopped_callback));
+    threads_.push_back(ENCODING_THREAD(encoding_queue, on_stopped_callback));
   }
 
   Start();
@@ -38,13 +61,13 @@ EncodingThreadsPool::~EncodingThreadsPool() {
 }
 
 void EncodingThreadsPool::Start() {
-  for (EncodingThread& thread : threads_) {
+  for (ENCODING_THREAD& thread : threads_) {
     thread.Start();
   }
 }
 
 void EncodingThreadsPool::Stop() {
-  for (EncodingThread& thread : threads_) {
+  for (ENCODING_THREAD& thread : threads_) {
     thread.Stop();
   }
 }

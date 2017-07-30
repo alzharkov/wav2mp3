@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 include_directories(BEFORE /usr/local/include/lame)
 link_directories(/usr/local/lib/)
+add_definitions(-DUSE_POSIX_THREADS)
 
 set(SOURCE_FILES
         src/encoder.cpp
@@ -24,7 +25,7 @@ set(SOURCE_FILES
         src/string_type.h
         src/wav_headers.h
         tests/main.cpp
-        Makefile)
+        Makefile src/encoding_thread_base.h src/encoding_thread_base.cpp src/encoding_thread_posix.cpp src/encoding_thread_posix.h)
 
 add_executable(wav2mp3 ${SOURCE_FILES})
 
