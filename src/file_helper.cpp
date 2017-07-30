@@ -8,7 +8,7 @@ std::list<FilePath> GetFilesList(
     const FilePath& path,
     std::function<bool(const FilePath&)> is_appropriate_file_name) {
   
-  DIR* directory = opendir(path);
+  DIR* directory = opendir(path.c_str());
 
   if (directory == nullptr)
     return std::list<FilePath>();

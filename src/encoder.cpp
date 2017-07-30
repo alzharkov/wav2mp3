@@ -1,12 +1,22 @@
 #include "encoder.h"
 
 #include <fstream>
+#include <string.h>
 #include <vector>
 
 #include "lame.h"
 
 #include "encoding_item.h"
 #include "wav_headers.h"
+
+#ifdef __unix
+int fopen_s(FILE** f, const char* name, const char* mode) {
+  *f = fopen(name, mode);
+  if (!*f)
+    return errno;
+  return 0;
+}
+#endif
 
 #if !defined(_UNICODE)  // not _UNICODE
 #define FOPEN fopen_s

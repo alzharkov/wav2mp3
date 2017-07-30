@@ -39,3 +39,12 @@
 
 #Exclude binaries
 out/
+
+#Exclude CLion files and folders
+.idea/
+
+#exclude CMAKE files
+cmake-build-debug/
+
+#exclude linux executable
+wav2mp3
