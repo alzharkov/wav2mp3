@@ -1,6 +1,7 @@
 #ifndef ENCODING_THREAD_POSIX_H
 #define ENCODING_THREAD_POSIX_H
 
+#include <mutex>
 #include "pthread.h"
 
 #include "encoding_thread_base.h"
@@ -28,6 +29,8 @@ class EncodingThreadPosix : public EncodingThreadBase {
   static void* PosixThreadFunction(void* object);
  private:
   pthread_t thread_;
+  std::mutex mutex_;
+  bool is_started_;
 };
 
 }  // namespace wav2mp3

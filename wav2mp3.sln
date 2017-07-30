@@ -9,26 +9,16 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Wav2mp3Test", "Wav2mp3Test.
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
-		Release|x64 = Release|x64
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{81613B08-C7D3-4714-A428-C360CEAF9DA2}.Debug|x64.ActiveCfg = Debug|x64
-		{81613B08-C7D3-4714-A428-C360CEAF9DA2}.Debug|x64.Build.0 = Debug|x64
 		{81613B08-C7D3-4714-A428-C360CEAF9DA2}.Debug|x86.ActiveCfg = Debug|Win32
 		{81613B08-C7D3-4714-A428-C360CEAF9DA2}.Debug|x86.Build.0 = Debug|Win32
-		{81613B08-C7D3-4714-A428-C360CEAF9DA2}.Release|x64.ActiveCfg = Release|x64
-		{81613B08-C7D3-4714-A428-C360CEAF9DA2}.Release|x64.Build.0 = Release|x64
 		{81613B08-C7D3-4714-A428-C360CEAF9DA2}.Release|x86.ActiveCfg = Release|Win32
 		{81613B08-C7D3-4714-A428-C360CEAF9DA2}.Release|x86.Build.0 = Release|Win32
-		{223583F5-CEA3-41AE-A24B-764259C633C4}.Debug|x64.ActiveCfg = Debug|x64
-		{223583F5-CEA3-41AE-A24B-764259C633C4}.Debug|x64.Build.0 = Debug|x64
 		{223583F5-CEA3-41AE-A24B-764259C633C4}.Debug|x86.ActiveCfg = Debug|Win32
 		{223583F5-CEA3-41AE-A24B-764259C633C4}.Debug|x86.Build.0 = Debug|Win32
-		{223583F5-CEA3-41AE-A24B-764259C633C4}.Release|x64.ActiveCfg = Release|x64
-		{223583F5-CEA3-41AE-A24B-764259C633C4}.Release|x64.Build.0 = Release|x64
 		{223583F5-CEA3-41AE-A24B-764259C633C4}.Release|x86.ActiveCfg = Release|Win32
 		{223583F5-CEA3-41AE-A24B-764259C633C4}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
