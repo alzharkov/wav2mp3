@@ -152,7 +152,7 @@ EncodingErrors Mp3Encoder::EncodeToMp3(lame_global_flags* global_flags, int data
 EncodingErrors Mp3Encoder::CheckFormat() {
   if (fmt_header_.audio_format != 0x01)
     return EncodingErrors::kFmtNonPCMFormat;
-
+  
   if (fmt_header_.num_channels != 1 && fmt_header_.num_channels != 2)
     return EncodingErrors::kFmtWrongChannelsNumber;
 

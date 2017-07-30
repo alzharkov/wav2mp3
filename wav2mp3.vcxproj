@@ -164,6 +164,7 @@
     <ClCompile Include="src\encoding_queue.cpp" />
     <ClCompile Include="src\encoding_thread.cpp" />
     <ClCompile Include="src\encoding_threads_pool.cpp" />
+    <ClCompile Include="src\file_helper.cpp" />
     <ClCompile Include="src\file_helper_win.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClInclude Include="src\encoder.h" />

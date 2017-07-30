@@ -1,3 +1,4 @@
+#ifdef __unix
 #include "file_helper.h"
 
 #include "dirent.h"
@@ -27,3 +28,4 @@ std::list<FilePath> GetFilesList(
 }
 
 }  // namespace wav2mp3
+#endif  // __unix

@@ -45,4 +45,4 @@ std::list<FilePath> GetFilesList(
 
 }  // namespace wav2mp3
 
-#endif
+#endif  // __unix
