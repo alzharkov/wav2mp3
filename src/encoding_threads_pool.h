@@ -23,8 +23,8 @@ class EncodingThreadsPool {
       uint32_t threads_count = 0);
   virtual ~EncodingThreadsPool();
 
-  // Use this method to wait until processing will be finished.
-  void Wait();
+  // Starts threads execution and waits for they completion.
+  void StartAndWait();
  protected:
   void Start();
   void Stop();

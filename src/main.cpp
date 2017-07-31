@@ -51,7 +51,7 @@ int _tmain(int argc, CharType **argv) {
   wav2mp3::FilePath path = argv[1];
   auto encoding_queue = GetEncodingQueue(path);
   wav2mp3::EncodingThreadsPool(encoding_queue)
-    .Wait();
+    .StartAndWait();
 
   PrintContinue();
 }

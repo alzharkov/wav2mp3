@@ -13,7 +13,6 @@ EncodingThread::EncodingThread(std::shared_ptr<EncodingQueue> encoding_queue,
 }
 
 EncodingThread::~EncodingThread() {
-  Stop();
 }
 
 void EncodingThread::Start() {

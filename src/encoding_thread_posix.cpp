@@ -33,7 +33,6 @@ void EncodingThreadPosix::Stop() {
 }
 
 EncodingThreadPosix::~EncodingThreadPosix() {
-  Stop();
 }
 
 void* EncodingThreadPosix::PosixThreadFunction(void* object) {

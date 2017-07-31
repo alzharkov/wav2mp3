@@ -50,14 +50,9 @@ EncodingThreadsPool::EncodingThreadsPool(
   for (uint32_t i = 0; i < threads_to_create; i++) {
     threads_.push_back(ENCODING_THREAD(encoding_queue, on_stopped_callback));
   }
-
-  Start();
 }
 
 EncodingThreadsPool::~EncodingThreadsPool() {
-  Stop();
-
-  Wait(); 
 }
 
 void EncodingThreadsPool::Start() {
@@ -72,8 +67,12 @@ void EncodingThreadsPool::Stop() {
   }
 }
 
-void EncodingThreadsPool::Wait() {
+void EncodingThreadsPool::StartAndWait() {
+  Start();
+
   while (threads_.size() > threads_completed_);
+
+  Stop();
 }
 
 }  // namespace wav2mp3
